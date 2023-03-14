@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/frchandra/chatin/app/model"
 	"github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -18,10 +19,10 @@ func NewUserFactory(db *mongo.Database, log *logrus.Logger) *UserFactory {
 
 func (f *UserFactory) RunFactory() error {
 	users := []any{
-		model.User{Name: "eko", Email: "eko@mail.com", Password: "password"},
-		model.User{Name: "dagus", Email: "dagus@mail.com", Password: "password"},
-		model.User{Name: "bekti", Email: "bekti@mail.com", Password: "password"},
-		model.User{Name: "juni", Email: "juni@mail.com", Password: "password"},
+		model.User{Id: primitive.NewObjectID(), Name: "eko", Email: "eko@mail.com", Password: "password"},
+		model.User{Id: primitive.NewObjectID(), Name: "dagus", Email: "dagus@mail.com", Password: "password"},
+		model.User{Id: primitive.NewObjectID(), Name: "bekti", Email: "bekti@mail.com", Password: "password"},
+		model.User{Id: primitive.NewObjectID(), Name: "juni", Email: "juni@mail.com", Password: "password"},
 	}
 	if _, err := f.db.Collection("users").InsertMany(context.Background(), users); err != nil {
 		f.log.Error("cannot seeding database. Error: " + err.Error())
