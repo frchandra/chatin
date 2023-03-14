@@ -1,0 +1,51 @@
+version: '3.7'
+
+services:
+  db:
+    image: 'mongo:6.0-jammy'
+    container_name: chatin-db
+    ports:
+      - "27017:${DB_PORT}"
+    environment:
+      MONGO_INITDB_DATABASE: ${DB_NAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER}
+    volumes:
+      - chatin-mongo-data:/data/db
+      - ./database/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
+    networks:
+      - chatin-network
+
+  cache:
+    container_name: chatin-cache
+    image: redis:7.0-bullseye
+    ports:
+      - '6379:6379'
+    command: redis-server --loglevel warning --requirepass ${REDIS_PASSWORD}
+    networks:
+      - chatin-network
+
+#  app:
+#    build:
+#      context: .
+#      dockerfile: ./app.Dockerfile
+#    hostname: app
+#    env_file: .env
+#    volumes:
+#      - ./storage/:/ticketing-chatin/storage/
+#      - ./resource/:/ticketing-chatin/resource/
+#    ports:
+#      - "8080:8080"
+#    networks:
+#      - chatin-network
+#    depends_on:
+#      - cache
+#      - db
+
+networks:
+  chatin-network:
+    driver: bridge
+
+volumes:
+  chatin-mongo-data:
+    driver: local
