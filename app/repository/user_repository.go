@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"reflect"
 )
 
 type UserRepository struct {
@@ -19,49 +20,50 @@ func NewUserRepository(db *mongo.Database, log *util.LogUtil) *UserRepository {
 	return &UserRepository{db: db, log: log}
 }
 
-func (r *UserRepository) GetOne(user *model.User) *mongo.SingleResult {
+func (r *UserRepository) GetOne(user *model.User) (model.User, error) {
 	filter := bson.M{
 		"name":  user.Name,
 		"email": user.Email,
 	}
 	result := r.db.Collection("users").FindOne(context.Background(), filter)
-	return result
+	var resultUser model.User
+	_ = result.Decode(&resultUser)
+	return resultUser, result.Err()
 }
 
-func (r *UserRepository) GetOneWithPassword(user *model.User) *mongo.SingleResult {
+func (r *UserRepository) GetOneWithPassword(user *model.User) (model.User, error) {
 	filter := bson.M{
 		"name":     user.Name,
 		"email":    user.Email,
 		"password": user.Password,
 	}
 	result := r.db.Collection("users").FindOne(context.Background(), filter)
-	return result
+	var resultUser model.User
+	_ = result.Decode(&resultUser)
+	return resultUser, result.Err()
 }
 
-func (r *UserRepository) GetOneById(id string) *mongo.SingleResult {
+func (r *UserRepository) GetOneById(id string) (model.User, error) {
 	filter := bson.M{
 		"_id": id,
 	}
 	result := r.db.Collection("users").FindOne(context.Background(), filter)
-	return result
+	var resultUser model.User
+	_ = result.Decode(&resultUser)
+	return resultUser, result.Err()
 }
 
 func (r *UserRepository) GetOrInsertOne(user *model.User) (model.User, error) {
-	result := r.GetOne(user)
-	if result.Err() != nil { //if user is not exist
-		if _, err := r.InsertOne(user); err != nil { //create user
-			r.log.BasicErrorLog(err, "UserRepository@GetOrInsertOne")
-			return *user, err
-		}
-		return *user, nil
-	} else { //if user exist
-		var userResult model.User
-		_ = result.Decode(&userResult)
-		return userResult, nil //return the found user
+	resultUser, _ := r.GetOne(user)
+	if reflect.ValueOf(resultUser).IsZero() { //if user is not exist
+		resultUser, err := r.InsertOne(user) //create user
+		return resultUser, err
 	}
+	//if user exist
+	return resultUser, nil //return the found user
 }
 
-func (r *UserRepository) InsertOne(user *model.User) (*mongo.InsertOneResult, error) {
+func (r *UserRepository) InsertOne(user *model.User) (model.User, error) {
 	filter := bson.D{
 		{
 			"$or",
@@ -71,10 +73,11 @@ func (r *UserRepository) InsertOne(user *model.User) (*mongo.InsertOneResult, er
 			},
 		},
 	}
+	var resultUser model.User
 	if result := r.db.Collection("users").FindOne(context.Background(), filter); result.Err() == nil { //Able to find user with this username/email. This means user with this username/email is already exist
-		return nil, errors.New("user with this username/email is already exist")
+		return resultUser, errors.New("user with this username/email is already exist")
 	}
 	user.Id = primitive.NewObjectID()
-	result, err := r.db.Collection("users").InsertOne(context.Background(), user)
-	return result, err
+	_, err := r.db.Collection("users").InsertOne(context.Background(), user)
+	return *user, err
 }

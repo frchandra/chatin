@@ -34,7 +34,14 @@ func (u *UserController) Register(c *gin.Context) {
 		Email:    inputData.Email,
 		Password: inputData.Password,
 	}
-	userResult := u.userService.GetOrInsertOne(&newUser)
+	userResult, err := u.userService.GetOrInsertOne(&newUser)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": "fail",
+			"error":  err.Error(),
+		})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"status": "success",
 		"user":   userResult,
