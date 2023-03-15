@@ -36,6 +36,7 @@ func (u *UserController) Register(c *gin.Context) {
 		Name:     inputData.Name,
 		Email:    inputData.Email,
 		Password: inputData.Password,
+		Role:     "user",
 	}
 
 	userResult, err := u.userService.GetOrInsertOne(&newUser) //update or get the new data
@@ -78,6 +79,7 @@ func (u *UserController) SignIn(c *gin.Context) {
 		Name:     inputData.Name,
 		Email:    inputData.Email,
 		Password: inputData.Password,
+		Role:     "user",
 	}
 
 	userResult, err := u.userService.InsertOne(&newUser) //insert the new user data
