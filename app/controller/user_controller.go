@@ -58,6 +58,8 @@ func (u *UserController) Register(c *gin.Context) {
 		return
 	}
 
+	c.SetCookie("access_token", token.AccessToken, int(u.config.AccessMinute/time.Second), "/", "localhost", false, true)
+	c.SetCookie("refresh_token", token.RefreshToken, int(u.config.AccessMinute/time.Second), "/", "localhost", false, true)
 	c.JSON(http.StatusOK, gin.H{
 		"status": "success",
 		"user":   userResult,
@@ -181,6 +183,8 @@ func (u *UserController) Logout(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, "unauthorized")
 		return
 	}
+	c.SetCookie("access_token", "", -1, "", "", false, true)
+	c.SetCookie("refresh_token", "", -1, "", "", false, true)
 	c.JSON(http.StatusOK, gin.H{
 		"status": "success",
 	})
