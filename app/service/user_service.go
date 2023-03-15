@@ -36,6 +36,8 @@ func (s *UserService) GetOrInsertOne(user *model.User) (model.User, error) {
 }
 
 func (s *UserService) InsertOne(user *model.User) (model.User, error) {
+	hashedCred, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost) //hash the credential
+	user.Password = string(hashedCred)
 	userResult, err := s.userRepo.InsertOne(user)
 	if err != nil {
 		return userResult, err

@@ -8,6 +8,7 @@ import (
 	"github.com/frchandra/chatin/config"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
 
 type UserController struct {
@@ -132,6 +133,8 @@ func (u *UserController) Login(c *gin.Context) {
 		return
 	}
 
+	c.SetCookie("access_token", token.AccessToken, int(u.config.AccessMinute/time.Second), "/", "localhost", false, true)
+	c.SetCookie("refresh_token", token.RefreshToken, int(u.config.AccessMinute/time.Second), "/", "localhost", false, true)
 	c.JSON(http.StatusOK, gin.H{
 		"status": "success",
 		"token":  token,
