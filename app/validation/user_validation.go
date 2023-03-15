@@ -7,7 +7,7 @@ type RegisterValidation struct {
 }
 
 type LoginValidation struct {
-	Name     string `json:"name" binding:"required_without=email,min=0,max=36"`
-	Email    string `json:"email" binding:"required_without=name,min=0,max=36"`
+	Name     string `json:"name" binding:"required_without=Email,min=0,max=36"`
+	Email    string `json:"email" binding:"required_without=Name,min=0,max=36"`
 	Password string `json:"password" binding:"required,min=7"`
 }

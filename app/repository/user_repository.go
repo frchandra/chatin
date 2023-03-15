@@ -31,11 +31,13 @@ func (r *UserRepository) GetOne(user *model.User) (model.User, error) {
 	return resultUser, result.Err()
 }
 
-func (r *UserRepository) GetOneWithPassword(user *model.User) (model.User, error) {
-	filter := bson.M{
-		"name":     user.Name,
-		"email":    user.Email,
-		"password": user.Password,
+func (r *UserRepository) GetOneByNameOrEmail(user *model.User) (model.User, error) {
+	filter := bson.D{
+		{"$or",
+			bson.A{
+				bson.D{{"name", user.Name}},
+				bson.D{{"email", user.Email}},
+			}},
 	}
 	result := r.db.Collection("users").FindOne(context.Background(), filter)
 	var resultUser model.User
@@ -44,8 +46,9 @@ func (r *UserRepository) GetOneWithPassword(user *model.User) (model.User, error
 }
 
 func (r *UserRepository) GetOneById(id string) (model.User, error) {
+	bsonId, _ := primitive.ObjectIDFromHex(id)
 	filter := bson.M{
-		"_id": id,
+		"_id": bsonId,
 	}
 	result := r.db.Collection("users").FindOne(context.Background(), filter)
 	var resultUser model.User

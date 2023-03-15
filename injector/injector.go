@@ -6,6 +6,7 @@ package injector
 import (
 	"github.com/frchandra/chatin/app"
 	"github.com/frchandra/chatin/app/controller"
+	"github.com/frchandra/chatin/app/middleware"
 	"github.com/frchandra/chatin/app/repository"
 	"github.com/frchandra/chatin/app/service"
 	"github.com/frchandra/chatin/app/util"
@@ -15,6 +16,10 @@ import (
 	"github.com/google/wire"
 )
 
+var MiddlewareSet = wire.NewSet(
+	middleware.NewUserMiddleware,
+)
+
 var UserSet = wire.NewSet(
 	repository.NewUserRepository,
 	service.NewUserService,
@@ -22,6 +27,7 @@ var UserSet = wire.NewSet(
 )
 
 var UtilSet = wire.NewSet(
+	util.NewTokenUtil,
 	util.NewLogUtil,
 )
 
@@ -29,8 +35,10 @@ func InitializeServer() *gin.Engine {
 	wire.Build(
 		config.NewAppConfig,
 		app.NewDatabase,
+		app.NewCache,
 		app.NewLogger,
 		UtilSet,
+		MiddlewareSet,
 		UserSet,
 		app.NewRouter,
 	)

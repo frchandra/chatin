@@ -9,6 +9,7 @@ package injector
 import (
 	"github.com/frchandra/chatin/app"
 	"github.com/frchandra/chatin/app/controller"
+	"github.com/frchandra/chatin/app/middleware"
 	"github.com/frchandra/chatin/app/repository"
 	"github.com/frchandra/chatin/app/service"
 	"github.com/frchandra/chatin/app/util"
@@ -22,13 +23,16 @@ import (
 
 func InitializeServer() *gin.Engine {
 	appConfig := config.NewAppConfig()
+	client := app.NewCache(appConfig)
+	tokenUtil := util.NewTokenUtil(client, appConfig)
 	logger := app.NewLogger(appConfig)
+	userMiddleware := middleware.NewUserMiddleware(tokenUtil, logger)
 	database := app.NewDatabase(appConfig, logger)
 	logUtil := util.NewLogUtil(logger)
 	userRepository := repository.NewUserRepository(database, logUtil)
-	userService := service.NewUserService(userRepository)
-	userController := controller.NewUserController(userService, logUtil)
-	engine := app.NewRouter(userController)
+	userService := service.NewUserService(userRepository, tokenUtil)
+	userController := controller.NewUserController(userService, tokenUtil, appConfig, logUtil)
+	engine := app.NewRouter(userMiddleware, userController)
 	return engine
 }
 
@@ -42,6 +46,8 @@ func InitializeMigrator() *database.Migrator {
 
 // injector.go:
 
+var MiddlewareSet = wire.NewSet(middleware.NewUserMiddleware)
+
 var UserSet = wire.NewSet(repository.NewUserRepository, service.NewUserService, controller.NewUserController)
 
-var UtilSet = wire.NewSet(util.NewLogUtil)
+var UtilSet = wire.NewSet(util.NewTokenUtil, util.NewLogUtil)
