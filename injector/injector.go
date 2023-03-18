@@ -10,9 +10,9 @@ import (
 	"github.com/frchandra/chatin/app/repository"
 	"github.com/frchandra/chatin/app/service"
 	"github.com/frchandra/chatin/app/util"
+	"github.com/frchandra/chatin/app/websocket"
 	"github.com/frchandra/chatin/config"
 	"github.com/frchandra/chatin/database"
-	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 )
 
@@ -31,7 +31,12 @@ var UtilSet = wire.NewSet(
 	util.NewLogUtil,
 )
 
-func InitializeServer() *gin.Engine {
+var WebsocketSet = wire.NewSet(
+	websocket.NewHub,
+	websocket.NewHandler,
+)
+
+func InitializeServer() *app.Server {
 	wire.Build(
 		config.NewAppConfig,
 		app.NewDatabase,
@@ -40,6 +45,7 @@ func InitializeServer() *gin.Engine {
 		UtilSet,
 		MiddlewareSet,
 		UserSet,
+		WebsocketSet,
 		app.NewRouter,
 	)
 	return nil

@@ -13,15 +13,15 @@ import (
 	"github.com/frchandra/chatin/app/repository"
 	"github.com/frchandra/chatin/app/service"
 	"github.com/frchandra/chatin/app/util"
+	"github.com/frchandra/chatin/app/websocket"
 	"github.com/frchandra/chatin/config"
 	"github.com/frchandra/chatin/database"
-	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 )
 
 // Injectors from injector.go:
 
-func InitializeServer() *gin.Engine {
+func InitializeServer() *app.Server {
 	appConfig := config.NewAppConfig()
 	client := app.NewCache(appConfig)
 	tokenUtil := util.NewTokenUtil(client, appConfig)
@@ -32,8 +32,10 @@ func InitializeServer() *gin.Engine {
 	userRepository := repository.NewUserRepository(database, logUtil)
 	userService := service.NewUserService(userRepository, tokenUtil)
 	userController := controller.NewUserController(userService, tokenUtil, appConfig, logUtil)
-	engine := app.NewRouter(userMiddleware, userController)
-	return engine
+	hub := websocket.NewHub()
+	wsHandler := websocket.NewHandler(hub)
+	server := app.NewRouter(userMiddleware, userController, wsHandler)
+	return server
 }
 
 func InitializeMigrator() *database.Migrator {
@@ -51,3 +53,5 @@ var MiddlewareSet = wire.NewSet(middleware.NewUserMiddleware)
 var UserSet = wire.NewSet(repository.NewUserRepository, service.NewUserService, controller.NewUserController)
 
 var UtilSet = wire.NewSet(util.NewTokenUtil, util.NewLogUtil)
+
+var WebsocketSet = wire.NewSet(websocket.NewHub, websocket.NewHandler)
