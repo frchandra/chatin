@@ -18,9 +18,10 @@ func NewRoomRepository(db *mongo.Database, log *util.LogUtil) *RoomRepository {
 	return &RoomRepository{db: db, log: log}
 }
 
-func (r *RoomRepository) GetOneByName(room *model.Room) (model.Room, error) {
+func (r *RoomRepository) GetOneById(roomId string) (model.Room, error) {
+	roomIdBson, _ := primitive.ObjectIDFromHex(roomId)
 	filter := bson.M{
-		"name": room.Name,
+		"_id": roomIdBson,
 	}
 	result := r.db.Collection("rooms").FindOne(context.Background(), filter)
 	var resultRoom model.Room

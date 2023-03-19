@@ -13,6 +13,11 @@ func NewRoomService(roomRepo *repository.RoomRepository) *RoomService {
 	return &RoomService{roomRepo: roomRepo}
 }
 
+func (s *RoomService) GetOneById(roomId string) (model.Room, error) {
+	resultRoom, err := s.roomRepo.GetOneById(roomId)
+	return resultRoom, err
+}
+
 func (s *RoomService) InsertOne(room *model.Room) (model.Room, error) {
 	resultRoom, err := s.roomRepo.InsertOne(room)
 	return resultRoom, err

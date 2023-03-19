@@ -19,7 +19,7 @@ type Client struct {
 	RoomService *service.RoomService
 }
 
-type Message struct { ///
+type Message struct { //TODO: sync this with the messages model on the database
 	Content   string    `json:"content"`
 	RoomId    string    `json:"roomId"`
 	Username  string    `json:"username"`
@@ -32,6 +32,13 @@ func (c *Client) WriteMessage() {
 	defer func() {
 		_ = c.Conn.Close()
 	}()
+
+	room, _ := c.RoomService.GetOneById(c.RoomId) //get previous conversation/messages from database
+	messages := room.Messages
+
+	for _, message := range messages { //sent previous conversation/messages to this client only
+		_ = c.Conn.WriteJSON(message)
+	}
 
 	for {
 		message, ok := <-c.Message
