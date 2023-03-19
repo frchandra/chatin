@@ -32,8 +32,10 @@ func InitializeServer() *app.Server {
 	userRepository := repository.NewUserRepository(database, logUtil)
 	userService := service.NewUserService(userRepository, tokenUtil)
 	userController := controller.NewUserController(userService, tokenUtil, appConfig, logUtil)
+	roomRepository := repository.NewRoomRepository(database, logUtil)
+	roomService := service.NewRoomService(roomRepository)
 	hub := messenger.NewHub()
-	roomController := controller.NewRoomController(hub)
+	roomController := controller.NewRoomController(roomService, hub)
 	server := app.NewRouter(userMiddleware, userController, roomController)
 	return server
 }
@@ -52,7 +54,7 @@ var MiddlewareSet = wire.NewSet(middleware.NewUserMiddleware)
 
 var UserSet = wire.NewSet(repository.NewUserRepository, service.NewUserService, controller.NewUserController)
 
-var RoomSet = wire.NewSet(controller.NewRoomController)
+var RoomSet = wire.NewSet(repository.NewRoomRepository, service.NewRoomService, controller.NewRoomController)
 
 var UtilSet = wire.NewSet(util.NewTokenUtil, util.NewLogUtil)
 

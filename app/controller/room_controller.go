@@ -2,6 +2,8 @@ package controller
 
 import (
 	"github.com/frchandra/chatin/app/messenger"
+	"github.com/frchandra/chatin/app/model"
+	"github.com/frchandra/chatin/app/service"
 	"github.com/frchandra/chatin/app/validation"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -9,11 +11,12 @@ import (
 )
 
 type RoomController struct {
-	Hub *messenger.Hub
+	roomSvc *service.RoomService
+	Hub     *messenger.Hub
 }
 
-func NewRoomController(hub *messenger.Hub) *RoomController {
-	return &RoomController{Hub: hub}
+func NewRoomController(roomSvc *service.RoomService, hub *messenger.Hub) *RoomController {
+	return &RoomController{roomSvc: roomSvc, Hub: hub}
 }
 
 func (r *RoomController) CreateRoom(c *gin.Context) {
@@ -23,7 +26,11 @@ func (r *RoomController) CreateRoom(c *gin.Context) {
 		return
 	}
 
-	r.Hub.Rooms[request.Id] = &messenger.Room{ //TODO: persist to DB
+	if _, err := r.roomSvc.InsertOne(&model.Room{Name: request.Name}); err != nil { //persist to db
+		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
+	}
+
+	r.Hub.Rooms[request.Id] = &messenger.Room{
 		Id:      request.Id,
 		Name:    request.Name,
 		Clients: make(map[string]*messenger.Client),
@@ -65,15 +72,11 @@ func (r *RoomController) JoinRoom(c *gin.Context) {
 		Username: username,
 	}
 
-	//Register a new client through the register channel
-	r.Hub.Register <- client
-	//Broadcast that message
-	r.Hub.Broadcast <- message
+	r.Hub.Register <- client   //Register a new client through the register channel
+	r.Hub.Broadcast <- message //Broadcast that message
 
-	//writeMessage
-	go client.WriteMessage()
-	//readMessage (blocking)
-	client.ReadMessage(r.Hub)
+	go client.WriteMessage()  //writeMessage (non-blocking)
+	client.ReadMessage(r.Hub) //readMessage (blocking)
 }
 
 func (r *RoomController) GetRooms(c *gin.Context) {

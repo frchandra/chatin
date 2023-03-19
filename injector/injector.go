@@ -27,6 +27,8 @@ var UserSet = wire.NewSet(
 )
 
 var RoomSet = wire.NewSet(
+	repository.NewRoomRepository,
+	service.NewRoomService,
 	controller.NewRoomController,
 )
 
