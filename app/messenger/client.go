@@ -3,6 +3,7 @@ package messenger
 import (
 	"github.com/gorilla/websocket"
 	"log"
+	"time"
 )
 
 type Client struct {
@@ -14,9 +15,12 @@ type Client struct {
 }
 
 type Message struct { ///
-	Content  string `json:"content"`
-	RoomId   string `json:"roomId"`
-	Username string `json:"username"`
+	Content   string    `json:"content"`
+	RoomId    string    `json:"roomId"`
+	Username  string    `json:"username"`
+	CreatedAt time.Time `bson:"created_at" json:"created_at"`
+	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
+	DeletedAt time.Time `bson:"deleted_at" json:"deleted_at"`
 }
 
 func (c *Client) WriteMessage() {
@@ -49,9 +53,12 @@ func (c *Client) ReadMessage(hub *Hub) {
 		}
 
 		msg := &Message{
-			Content:  string(m),
-			RoomId:   c.RoomId,
-			Username: c.Username,
+			Content:   string(m),
+			RoomId:    c.RoomId,
+			Username:  c.Username,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			DeletedAt: time.Time{},
 		}
 
 		hub.Broadcast <- msg

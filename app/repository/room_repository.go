@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"github.com/frchandra/chatin/app/model"
 	"github.com/frchandra/chatin/app/util"
 	"go.mongodb.org/mongo-driver/bson"
@@ -30,9 +29,6 @@ func (r *RoomRepository) GetOneByName(room *model.Room) (model.Room, error) {
 }
 
 func (r *RoomRepository) InsertOne(room *model.Room) (model.Room, error) {
-	if resultRoom, err := r.GetOneByName(room); err == nil {
-		return resultRoom, errors.New("room with this name is already exist")
-	}
 	room.Id = primitive.NewObjectID()
 	_, err := r.db.Collection("rooms").InsertOne(context.Background(), room)
 	return *room, err

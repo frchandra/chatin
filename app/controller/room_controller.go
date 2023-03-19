@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"time"
 )
 
 type RoomController struct {
@@ -31,9 +32,12 @@ func (r *RoomController) CreateRoom(c *gin.Context) {
 	}
 
 	r.Hub.Rooms[request.Id] = &messenger.Room{
-		Id:      request.Id,
-		Name:    request.Name,
-		Clients: make(map[string]*messenger.Client),
+		Id:        request.Id,
+		Name:      request.Name,
+		Clients:   make(map[string]*messenger.Client),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		DeletedAt: time.Time{},
 	}
 	c.JSON(http.StatusOK, request)
 	return
@@ -83,8 +87,11 @@ func (r *RoomController) GetRooms(c *gin.Context) {
 	rooms := make([]validation.GetRoomResponse, 0)
 	for _, r := range r.Hub.Rooms {
 		rooms = append(rooms, validation.GetRoomResponse{
-			Id:   r.Id,
-			Name: r.Name,
+			Id:        r.Id,
+			Name:      r.Name,
+			CreatedAt: r.CreatedAt,
+			UpdatedAt: r.UpdatedAt,
+			DeletedAt: r.DeletedAt,
 		})
 	}
 	c.JSON(http.StatusOK, rooms)

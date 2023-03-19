@@ -17,12 +17,21 @@ func NewMigrator(db *mongo.Database, log *logrus.Logger) *Migrator {
 }
 
 func (m *Migrator) RunMigration() {
+	//Users collection
 	if err := m.db.Collection("users").Drop(context.Background()); err != nil {
 		m.log.Warn("error when dropping collection. Error: ", err.Error())
 	}
 	if err := m.db.CreateCollection(context.Background(), "users"); err != nil {
 		m.log.Error("error when creating collection. Error: " + err.Error())
 	}
+	//Rooms collection
+	if err := m.db.Collection("rooms").Drop(context.Background()); err != nil {
+		m.log.Warn("error when dropping collection. Error: ", err.Error())
+	}
+	if err := m.db.CreateCollection(context.Background(), "rooms"); err != nil {
+		m.log.Error("error when creating collection. Error: " + err.Error())
+	}
+	//Seeder
 	if err := m.RunSeeder(); err != nil {
 		m.log.Error("error when running seeder. Error: " + err.Error())
 	}
