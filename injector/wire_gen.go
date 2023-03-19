@@ -9,11 +9,11 @@ package injector
 import (
 	"github.com/frchandra/chatin/app"
 	"github.com/frchandra/chatin/app/controller"
+	"github.com/frchandra/chatin/app/messenger"
 	"github.com/frchandra/chatin/app/middleware"
 	"github.com/frchandra/chatin/app/repository"
 	"github.com/frchandra/chatin/app/service"
 	"github.com/frchandra/chatin/app/util"
-	"github.com/frchandra/chatin/app/websocket"
 	"github.com/frchandra/chatin/config"
 	"github.com/frchandra/chatin/database"
 	"github.com/google/wire"
@@ -32,9 +32,9 @@ func InitializeServer() *app.Server {
 	userRepository := repository.NewUserRepository(database, logUtil)
 	userService := service.NewUserService(userRepository, tokenUtil)
 	userController := controller.NewUserController(userService, tokenUtil, appConfig, logUtil)
-	hub := websocket.NewHub()
-	wsHandler := websocket.NewHandler(hub)
-	server := app.NewRouter(userMiddleware, userController, wsHandler)
+	hub := messenger.NewHub()
+	roomController := controller.NewRoomController(hub)
+	server := app.NewRouter(userMiddleware, userController, roomController)
 	return server
 }
 
@@ -52,6 +52,8 @@ var MiddlewareSet = wire.NewSet(middleware.NewUserMiddleware)
 
 var UserSet = wire.NewSet(repository.NewUserRepository, service.NewUserService, controller.NewUserController)
 
+var RoomSet = wire.NewSet(controller.NewRoomController)
+
 var UtilSet = wire.NewSet(util.NewTokenUtil, util.NewLogUtil)
 
-var WebsocketSet = wire.NewSet(websocket.NewHub, websocket.NewHandler)
+var MessengerSet = wire.NewSet(messenger.NewHub)

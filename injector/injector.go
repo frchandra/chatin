@@ -6,11 +6,11 @@ package injector
 import (
 	"github.com/frchandra/chatin/app"
 	"github.com/frchandra/chatin/app/controller"
+	"github.com/frchandra/chatin/app/messenger"
 	"github.com/frchandra/chatin/app/middleware"
 	"github.com/frchandra/chatin/app/repository"
 	"github.com/frchandra/chatin/app/service"
 	"github.com/frchandra/chatin/app/util"
-	"github.com/frchandra/chatin/app/websocket"
 	"github.com/frchandra/chatin/config"
 	"github.com/frchandra/chatin/database"
 	"github.com/google/wire"
@@ -26,14 +26,17 @@ var UserSet = wire.NewSet(
 	controller.NewUserController,
 )
 
+var RoomSet = wire.NewSet(
+	controller.NewRoomController,
+)
+
 var UtilSet = wire.NewSet(
 	util.NewTokenUtil,
 	util.NewLogUtil,
 )
 
-var WebsocketSet = wire.NewSet(
-	websocket.NewHub,
-	websocket.NewHandler,
+var MessengerSet = wire.NewSet(
+	messenger.NewHub,
 )
 
 func InitializeServer() *app.Server {
@@ -42,10 +45,11 @@ func InitializeServer() *app.Server {
 		app.NewDatabase,
 		app.NewCache,
 		app.NewLogger,
+		MessengerSet,
 		UtilSet,
 		MiddlewareSet,
 		UserSet,
-		WebsocketSet,
+		RoomSet,
 		app.NewRouter,
 	)
 	return nil

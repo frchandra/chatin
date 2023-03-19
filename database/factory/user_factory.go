@@ -19,10 +19,10 @@ func NewUserFactory(db *mongo.Database, log *logrus.Logger) *UserFactory {
 
 func (f *UserFactory) RunFactory() error {
 	users := []any{
-		model.User{Id: primitive.NewObjectID(), Name: "eko", Email: "eko@mail.com", Password: "password", Role: "user"},
-		model.User{Id: primitive.NewObjectID(), Name: "dagus", Email: "dagus@mail.com", Password: "password", Role: "user"},
-		model.User{Id: primitive.NewObjectID(), Name: "bekti", Email: "bekti@mail.com", Password: "password", Role: "user"},
-		model.User{Id: primitive.NewObjectID(), Name: "juni", Email: "juni@mail.com", Password: "password", Role: "user"},
+		model.User{Id: primitive.NewObjectID(), Username: "eko", Email: "eko@mail.com", Password: "password", Role: "user"},
+		model.User{Id: primitive.NewObjectID(), Username: "dagus", Email: "dagus@mail.com", Password: "password", Role: "user"},
+		model.User{Id: primitive.NewObjectID(), Username: "bekti", Email: "bekti@mail.com", Password: "password", Role: "user"},
+		model.User{Id: primitive.NewObjectID(), Username: "juni", Email: "juni@mail.com", Password: "password", Role: "user"},
 	}
 	if _, err := f.db.Collection("users").InsertMany(context.Background(), users); err != nil {
 		f.log.Error("cannot seeding database. Error: " + err.Error())

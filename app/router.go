@@ -2,17 +2,21 @@ package app
 
 import (
 	"github.com/frchandra/chatin/app/controller"
+	"github.com/frchandra/chatin/app/messenger"
 	"github.com/frchandra/chatin/app/middleware"
-	"github.com/frchandra/chatin/app/websocket"
 	"github.com/gin-gonic/gin"
 )
 
 type Server struct {
 	Web *gin.Engine
-	Hub *websocket.Hub
+	Hub *messenger.Hub
 }
 
-func NewRouter(userMiddleware *middleware.UserMiddleware, userController *controller.UserController, wsHandler *websocket.WsHandler) *Server {
+func NewRouter(
+	userMiddleware *middleware.UserMiddleware,
+	userController *controller.UserController,
+	roomController *controller.RoomController,
+) *Server {
 	router := gin.Default()
 
 	//Public User Standard Auth Routes
@@ -29,14 +33,14 @@ func NewRouter(userMiddleware *middleware.UserMiddleware, userController *contro
 
 	//Websocket Routes
 	ws := router.Group("/ws/v1")
-	ws.POST("/room", wsHandler.CreateRoom)
-	ws.GET("/room/join/:roomId", wsHandler.JoinRoom)
-	ws.GET("/room", wsHandler.GetRooms)
-	ws.GET("/clients/:roomId", wsHandler.GetClients)
+	ws.POST("/room", roomController.CreateRoom)
+	ws.GET("/room/join/:roomId", roomController.JoinRoom)
+	ws.GET("/room", roomController.GetRooms)
+	ws.GET("/clients/:roomId", roomController.GetClients)
 
 	server := &Server{
 		Web: router,
-		Hub: wsHandler.Hub,
+		Hub: roomController.Hub,
 	}
 
 	return server

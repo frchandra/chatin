@@ -1,31 +1,32 @@
-package websocket
+package controller
 
 import (
+	"github.com/frchandra/chatin/app/messenger"
 	"github.com/frchandra/chatin/app/validation"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"net/http"
 )
 
-type WsHandler struct {
-	Hub *Hub
+type RoomController struct {
+	Hub *messenger.Hub
 }
 
-func NewHandler(hub *Hub) *WsHandler {
-	return &WsHandler{Hub: hub}
+func NewRoomController(hub *messenger.Hub) *RoomController {
+	return &RoomController{Hub: hub}
 }
 
-func (h *WsHandler) CreateRoom(c *gin.Context) {
+func (r *RoomController) CreateRoom(c *gin.Context) {
 	var request validation.CreateRoomRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
 		return
 	}
 
-	h.Hub.Rooms[request.Id] = &Room{ //TODO: persist to DB
+	r.Hub.Rooms[request.Id] = &messenger.Room{ //TODO: persist to DB
 		Id:      request.Id,
 		Name:    request.Name,
-		Clients: make(map[string]*Client),
+		Clients: make(map[string]*messenger.Client),
 	}
 	c.JSON(http.StatusOK, request)
 	return
@@ -39,7 +40,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func (h *WsHandler) JoinRoom(c *gin.Context) {
+func (r *RoomController) JoinRoom(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
@@ -50,34 +51,34 @@ func (h *WsHandler) JoinRoom(c *gin.Context) {
 	clientId := c.Query("userId")
 	username := c.Query("username")
 
-	client := &Client{
+	client := &messenger.Client{
 		Conn:     conn,
-		Message:  make(chan *Message, 10),
+		Message:  make(chan *messenger.Message, 10),
 		Id:       clientId,
 		RoomId:   roomId,
 		Username: username,
 	}
 
-	message := &Message{
+	message := &messenger.Message{
 		Content:  "A new user has joined the room",
 		RoomId:   roomId,
 		Username: username,
 	}
 
 	//Register a new client through the register channel
-	h.Hub.Register <- client
+	r.Hub.Register <- client
 	//Broadcast that message
-	h.Hub.Broadcast <- message
+	r.Hub.Broadcast <- message
 
 	//writeMessage
-	go client.writeMessage()
+	go client.WriteMessage()
 	//readMessage (blocking)
-	client.readMessage(h.Hub)
+	client.ReadMessage(r.Hub)
 }
 
-func (h *WsHandler) GetRooms(c *gin.Context) {
+func (r *RoomController) GetRooms(c *gin.Context) {
 	rooms := make([]validation.GetRoomResponse, 0)
-	for _, r := range h.Hub.Rooms {
+	for _, r := range r.Hub.Rooms {
 		rooms = append(rooms, validation.GetRoomResponse{
 			Id:   r.Id,
 			Name: r.Name,
@@ -87,15 +88,15 @@ func (h *WsHandler) GetRooms(c *gin.Context) {
 	return
 }
 
-func (h *WsHandler) GetClients(c *gin.Context) {
+func (r *RoomController) GetClients(c *gin.Context) {
 	var clients []validation.GetClientResponse
 	roomId := c.Param("roomId")
-	if _, ok := h.Hub.Rooms[roomId]; !ok {
+	if _, ok := r.Hub.Rooms[roomId]; !ok {
 		clients = make([]validation.GetClientResponse, 0)
 		c.JSON(http.StatusBadRequest, clients)
 		return
 	}
-	for _, c := range h.Hub.Rooms[roomId].Clients {
+	for _, c := range r.Hub.Rooms[roomId].Clients {
 		clients = append(clients, validation.GetClientResponse{
 			Id:       c.Id,
 			Username: c.Username,

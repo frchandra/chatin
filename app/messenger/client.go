@@ -1,4 +1,4 @@
-package websocket
+package messenger
 
 import (
 	"github.com/gorilla/websocket"
@@ -13,15 +13,15 @@ type Client struct {
 	Username string `json:"username"`
 }
 
-type Message struct {
+type Message struct { ///
 	Content  string `json:"content"`
 	RoomId   string `json:"roomId"`
 	Username string `json:"username"`
 }
 
-func (c *Client) writeMessage() {
+func (c *Client) WriteMessage() {
 	defer func() {
-		c.Conn.Close()
+		_ = c.Conn.Close()
 	}()
 
 	for {
@@ -29,15 +29,14 @@ func (c *Client) writeMessage() {
 		if !ok {
 			return
 		}
-
-		c.Conn.WriteJSON(message)
+		_ = c.Conn.WriteJSON(message)
 	}
 }
 
-func (c *Client) readMessage(hub *Hub) {
+func (c *Client) ReadMessage(hub *Hub) {
 	defer func() {
 		hub.Unregister <- c
-		c.Conn.Close()
+		_ = c.Conn.Close()
 	}()
 
 	for {

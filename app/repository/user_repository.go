@@ -22,7 +22,7 @@ func NewUserRepository(db *mongo.Database, log *util.LogUtil) *UserRepository {
 
 func (r *UserRepository) GetOne(user *model.User) (model.User, error) {
 	filter := bson.M{
-		"name":  user.Name,
+		"name":  user.Username,
 		"email": user.Email,
 	}
 	result := r.db.Collection("users").FindOne(context.Background(), filter)
@@ -35,7 +35,7 @@ func (r *UserRepository) GetOneByNameOrEmail(user *model.User) (model.User, erro
 	filter := bson.D{
 		{"$or",
 			bson.A{
-				bson.D{{"name", user.Name}},
+				bson.D{{"name", user.Username}},
 				bson.D{{"email", user.Email}},
 			}},
 	}
@@ -71,7 +71,7 @@ func (r *UserRepository) InsertOne(user *model.User) (model.User, error) {
 		{
 			"$or",
 			bson.A{
-				bson.M{"name": user.Name},
+				bson.M{"name": user.Username},
 				bson.M{"email": user.Email},
 			},
 		},

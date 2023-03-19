@@ -34,7 +34,7 @@ func (u *UserController) Register(c *gin.Context) {
 	}
 
 	newUser := model.User{ //transform the data into user object
-		Name:     inputData.Name,
+		Username: inputData.Name,
 		Email:    inputData.Email,
 		Password: inputData.Password,
 		Role:     "user",
@@ -79,7 +79,7 @@ func (u *UserController) SignIn(c *gin.Context) {
 	}
 
 	newUser := model.User{ //transform the data into user object
-		Name:     inputData.Name,
+		Username: inputData.Name,
 		Email:    inputData.Email,
 		Password: inputData.Password,
 		Role:     "user",
@@ -113,7 +113,7 @@ func (u *UserController) Login(c *gin.Context) {
 
 	user := model.User{ //transform the input data to user object
 		Email:    inputData.Email,
-		Name:     inputData.Name,
+		Username: inputData.Name,
 		Password: inputData.Password,
 	}
 
