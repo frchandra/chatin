@@ -31,6 +31,7 @@ func (m *Migrator) RunMigration() {
 	if err := m.db.CreateCollection(context.Background(), "rooms"); err != nil {
 		m.log.Error("error when creating collection. Error: " + err.Error())
 	}
+
 	//Seeder
 	if err := m.RunSeeder(); err != nil {
 		m.log.Error("error when running seeder. Error: " + err.Error())

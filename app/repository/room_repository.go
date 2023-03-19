@@ -33,3 +33,20 @@ func (r *RoomRepository) InsertOne(room *model.Room) (model.Room, error) {
 	_, err := r.db.Collection("rooms").InsertOne(context.Background(), room)
 	return *room, err
 }
+
+func (r *RoomRepository) InsertMessage(roomId string, message *model.Message) (model.Message, error) {
+	roomIdBson, _ := primitive.ObjectIDFromHex(roomId)
+	filter := bson.M{"_id": roomIdBson}
+	newMessage := model.Message{
+		Id:       primitive.NewObjectID(),
+		Content:  message.Content,
+		Username: message.Username,
+		Role:     message.Role,
+	}
+	update := bson.D{{"$push", bson.M{"messages": newMessage}}}
+	_, err := r.db.Collection("rooms").UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return model.Message{}, err
+	}
+	return *message, nil
+}

@@ -73,5 +73,8 @@ func (r *UserRepository) InsertOne(user *model.User) (model.User, error) {
 	}
 	user.Id = primitive.NewObjectID()
 	_, err := r.db.Collection("users").InsertOne(context.Background(), user)
+	if err != nil {
+		return model.User{}, err
+	}
 	return *user, err
 }

@@ -17,3 +17,8 @@ func (s *RoomService) InsertOne(room *model.Room) (model.Room, error) {
 	resultRoom, err := s.roomRepo.InsertOne(room)
 	return resultRoom, err
 }
+
+func (s *RoomService) InsertMessage(roomId string, message *model.Message) (model.Message, error) {
+	resultMessage, err := s.roomRepo.InsertMessage(roomId, message)
+	return resultMessage, err
+}

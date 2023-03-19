@@ -1,17 +1,22 @@
 package messenger
 
 import (
+	"fmt"
+	"github.com/frchandra/chatin/app/model"
+	"github.com/frchandra/chatin/app/service"
 	"github.com/gorilla/websocket"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 	"time"
 )
 
 type Client struct {
-	Conn     *websocket.Conn
-	Message  chan *Message
-	Id       string `json:"id"`
-	RoomId   string `json:"room_id"`
-	Username string `json:"username"`
+	Conn        *websocket.Conn
+	Message     chan *Message
+	Id          string `json:"id"`
+	RoomId      string `json:"room_id"`
+	Username    string `json:"username"`
+	RoomService *service.RoomService
 }
 
 type Message struct { ///
@@ -59,6 +64,23 @@ func (c *Client) ReadMessage(hub *Hub) {
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 			DeletedAt: time.Time{},
+		}
+
+		fmt.Println("######### RECEIVE NEW MSG : ")
+		fmt.Println(msg)
+
+		result, err := c.RoomService.InsertMessage(msg.RoomId, &model.Message{
+			Id:       primitive.NewObjectID(),
+			Content:  msg.Content,
+			Username: msg.Username,
+			Role:     "user", //TODO: make this dynamic
+		})
+		if err != nil {
+			fmt.Println("######### DB OPS ERROR")
+			fmt.Println(err.Error())
+		} else {
+			fmt.Println("######### DB OPS SUCCESS")
+			fmt.Println(result)
 		}
 
 		hub.Broadcast <- msg

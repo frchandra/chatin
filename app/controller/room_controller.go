@@ -7,6 +7,7 @@ import (
 	"github.com/frchandra/chatin/app/validation"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"time"
 )
@@ -27,19 +28,27 @@ func (r *RoomController) CreateRoom(c *gin.Context) {
 		return
 	}
 
-	if _, err := r.roomSvc.InsertOne(&model.Room{Name: request.Name}); err != nil { //persist to db
+	messages := []model.Message{
+		model.Message{
+			Id:      primitive.NewObjectID(),
+			Content: "room " + request.Name + " is created",
+		},
+	}
+
+	roomResult, err := r.roomSvc.InsertOne(&model.Room{Name: request.Name, Messages: messages})
+	if err != nil { //persist to db
 		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
 	}
 
-	r.Hub.Rooms[request.Id] = &messenger.Room{
-		Id:        request.Id,
+	r.Hub.Rooms[roomResult.Id.Hex()] = &messenger.Room{
+		Id:        roomResult.Id.Hex(),
 		Name:      request.Name,
 		Clients:   make(map[string]*messenger.Client),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		DeletedAt: time.Time{},
 	}
-	c.JSON(http.StatusOK, request)
+	c.JSON(http.StatusOK, r.Hub.Rooms[roomResult.Id.Hex()])
 	return
 }
 
@@ -63,11 +72,12 @@ func (r *RoomController) JoinRoom(c *gin.Context) {
 	username := c.Query("username")
 
 	client := &messenger.Client{
-		Conn:     conn,
-		Message:  make(chan *messenger.Message, 10),
-		Id:       clientId,
-		RoomId:   roomId,
-		Username: username,
+		Conn:        conn,
+		Message:     make(chan *messenger.Message, 10),
+		Id:          clientId,
+		RoomId:      roomId,
+		Username:    username,
+		RoomService: r.roomSvc,
 	}
 
 	message := &messenger.Message{
@@ -84,15 +94,9 @@ func (r *RoomController) JoinRoom(c *gin.Context) {
 }
 
 func (r *RoomController) GetRooms(c *gin.Context) {
-	rooms := make([]validation.GetRoomResponse, 0)
-	for _, r := range r.Hub.Rooms {
-		rooms = append(rooms, validation.GetRoomResponse{
-			Id:        r.Id,
-			Name:      r.Name,
-			CreatedAt: r.CreatedAt,
-			UpdatedAt: r.UpdatedAt,
-			DeletedAt: r.DeletedAt,
-		})
+	rooms := make([]messenger.Room, 0)
+	for _, room := range r.Hub.Rooms {
+		rooms = append(rooms, *room)
 	}
 	c.JSON(http.StatusOK, rooms)
 	return
@@ -106,10 +110,10 @@ func (r *RoomController) GetClients(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, clients)
 		return
 	}
-	for _, c := range r.Hub.Rooms[roomId].Clients {
+	for _, client := range r.Hub.Rooms[roomId].Clients {
 		clients = append(clients, validation.GetClientResponse{
-			Id:       c.Id,
-			Username: c.Username,
+			Id:       client.Id,
+			Username: client.Username,
 		})
 	}
 	c.JSON(http.StatusOK, clients)
