@@ -19,10 +19,12 @@ type Client struct {
 	RoomService *service.RoomService
 }
 
-type Message struct { //TODO: sync this with the messages model on the database
+type Message struct {
+	Id        string    `json:"id"`
 	Content   string    `json:"content"`
-	RoomId    string    `json:"roomId"`
 	Username  string    `json:"username"`
+	Role      string    `json:"role"`
+	RoomId    string    `json:"roomId"`
 	CreatedAt time.Time `bson:"created_at" json:"created_at"`
 	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
 	DeletedAt time.Time `bson:"deleted_at" json:"deleted_at"`
