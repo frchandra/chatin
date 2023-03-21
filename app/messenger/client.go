@@ -66,7 +66,10 @@ func (c *Client) ReadMessage(hub *Hub) {
 			break
 		}
 
+		msgId := primitive.NewObjectID()
+
 		msg := &Message{
+			Id:        msgId.Hex(),
 			Content:   string(m),
 			RoomId:    c.RoomId,
 			Username:  c.Username,
@@ -79,7 +82,7 @@ func (c *Client) ReadMessage(hub *Hub) {
 		fmt.Println(msg)
 
 		result, err := c.RoomService.InsertMessage(msg.RoomId, &model.Message{
-			Id:       primitive.NewObjectID(),
+			Id:       msgId,
 			Content:  msg.Content,
 			Username: msg.Username,
 			Role:     "user", //TODO: make this dynamic

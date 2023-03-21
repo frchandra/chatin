@@ -5,10 +5,10 @@ import "time"
 type Room struct { ///
 	Id        string             `json:"id"`
 	Name      string             `json:"name"`
-	Clients   map[string]*Client `json:"clients"`
-	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
-	UpdatedAt time.Time          `bson:"updated_at" json:"updated_at"`
-	DeletedAt time.Time          `bson:"deleted_at" json:"deleted_at"`
+	Clients   map[string]*Client `json:"-"`
+	CreatedAt time.Time          `json:"created_at"`
+	UpdatedAt time.Time          `json:"updated_at"`
+	DeletedAt time.Time          `json:"deleted_at"`
 }
 
 type Hub struct {

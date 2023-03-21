@@ -14,4 +14,5 @@ func main() {
 
 //TODO: make hub interface
 //TODO: utilise token & auth when chatting
+//TODO: sync room in the db with room in the hub
 //(V)TODO: sync the models message struct with the hub message struct

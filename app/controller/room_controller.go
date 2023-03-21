@@ -67,9 +67,13 @@ func (r *RoomController) JoinRoom(c *gin.Context) {
 		return
 	}
 
+	contextData, _ := c.Get("accessDetails")              //from the context passed by the user middleware, get the details about the current user that make request from the context passed by user middleware
+	accessDetails, _ := contextData.(*util.AccessDetails) //type assertion
+	user, _ := r.userService.GetOneById(accessDetails.UserId)
+
 	roomId := c.Param("roomId")
-	clientId := c.Query("userId")
-	username := c.Query("username")
+	clientId := user.Id.Hex()
+	username := user.Username
 
 	client := &messenger.Client{
 		Conn:        conn,

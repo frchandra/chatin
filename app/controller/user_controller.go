@@ -85,7 +85,7 @@ func (u *UserController) SignIn(c *gin.Context) {
 		Role:     "user",
 	}
 
-	userResult, err := u.userService.GetOrInsertOne(&newUser) //insert the new user data
+	userResult, err := u.userService.InsertOne(&newUser) //insert the new user data
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"status": "fail",

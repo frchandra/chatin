@@ -35,7 +35,7 @@ func (r *UserRepository) GetOneByNameOrEmail(user *model.User) (model.User, erro
 	filter := bson.D{
 		{"$or",
 			bson.A{
-				bson.M{"name": user.Username},
+				bson.M{"username": user.Username},
 				bson.M{"email": user.Email},
 			},
 		},
@@ -68,7 +68,7 @@ func (r *UserRepository) GetOrInsertOne(user *model.User) (model.User, error) {
 }
 
 func (r *UserRepository) InsertOne(user *model.User) (model.User, error) {
-	if resultUser, err := r.GetOne(user); err == nil { //Able to find user with this username/email. This means user with this username/email is already exist
+	if resultUser, err := r.GetOneByNameOrEmail(user); err == nil { //Able to find user with this username/email. This means user with this username/email is already exist
 		return resultUser, errors.New("user with this username/email is already exist")
 	}
 	user.Id = primitive.NewObjectID()
