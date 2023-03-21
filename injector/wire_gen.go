@@ -26,16 +26,16 @@ func InitializeServer() *app.Server {
 	client := app.NewCache(appConfig)
 	tokenUtil := util.NewTokenUtil(client, appConfig)
 	logger := app.NewLogger(appConfig)
-	userMiddleware := middleware.NewUserMiddleware(tokenUtil, logger)
 	database := app.NewDatabase(appConfig, logger)
 	logUtil := util.NewLogUtil(logger)
 	userRepository := repository.NewUserRepository(database, logUtil)
 	userService := service.NewUserService(userRepository, tokenUtil)
+	userMiddleware := middleware.NewUserMiddleware(tokenUtil, logger, userService)
 	userController := controller.NewUserController(userService, tokenUtil, appConfig, logUtil)
 	roomRepository := repository.NewRoomRepository(database, logUtil)
 	roomService := service.NewRoomService(roomRepository)
 	hub := messenger.NewHub()
-	roomController := controller.NewRoomController(roomService, hub)
+	roomController := controller.NewRoomController(roomService, userService, hub)
 	server := app.NewRouter(userMiddleware, userController, roomController)
 	return server
 }

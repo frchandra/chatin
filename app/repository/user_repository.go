@@ -22,8 +22,8 @@ func NewUserRepository(db *mongo.Database, log *util.LogUtil) *UserRepository {
 
 func (r *UserRepository) GetOne(user *model.User) (model.User, error) {
 	filter := bson.M{
-		"name":  user.Username,
-		"email": user.Email,
+		"username": user.Username,
+		"email":    user.Email,
 	}
 	result := r.db.Collection("users").FindOne(context.Background(), filter)
 	var resultUser model.User

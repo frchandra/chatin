@@ -203,8 +203,8 @@ func (tu *TokenUtil) Refresh(c *gin.Context) (map[string]string, error) {
 	}
 
 	tokens := map[string]string{
-		"access_token":  tokenDetails.AccessToken,
-		"refresh_token": tokenDetails.RefreshToken,
+		"AccessToken":  tokenDetails.AccessToken,
+		"RefreshToken": tokenDetails.RefreshToken,
 	}
 
 	return tokens, nil

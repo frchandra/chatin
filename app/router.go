@@ -20,23 +20,22 @@ func NewRouter(
 	router := gin.Default()
 
 	//Public User Standard Auth Routes
-	public := router.Group("/api/v1")
-	public.POST("/user/register", userController.Register)
-	public.POST("/user/sign_in", userController.SignIn)
-	public.POST("/user/login", userController.Login)
-	public.POST("/user/refresh", userController.RefreshToken)
+	public := router
+	public.POST("/api/v1/user/register", userController.Register)
+	public.POST("/api/v1/user/sign_in", userController.SignIn)
+	public.POST("/api/v1/user/login", userController.Login)
+	public.POST("/api/v1/user/refresh", userController.RefreshToken)
 
 	//Logged-In User Routes
-	user := router.Group("/api/v1").Use(userMiddleware.HandleUserAccess)
-	user.POST("/user/logout", userController.Logout)
-	user.GET("/user", userController.CurrentUser)
+	user := router.Use(userMiddleware.HandleUserAccess)
+	user.POST("/api/v1/user/logout", userController.Logout)
+	user.GET("/api/v1/user", userController.CurrentUser)
+	user.POST("/api/v1/room", roomController.CreateRoom)
+	user.GET("/ws/v1/room/join/:roomId", roomController.JoinRoom)
+	user.GET("/api/v1/room", roomController.GetRooms)              //make this admin
+	user.GET("/api/v1/clients/:roomId", roomController.GetClients) //make this admin
 
-	//Websocket Routes
-	ws := router.Group("/ws/v1")
-	ws.POST("/room", roomController.CreateRoom)
-	ws.GET("/room/join/:roomId", roomController.JoinRoom)
-	ws.GET("/room", roomController.GetRooms)
-	ws.GET("/clients/:roomId", roomController.GetClients)
+	//Logged-In Admin Routes
 
 	server := &Server{
 		Web: router,

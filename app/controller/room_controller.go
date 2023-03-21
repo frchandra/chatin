@@ -4,6 +4,7 @@ import (
 	"github.com/frchandra/chatin/app/messenger"
 	"github.com/frchandra/chatin/app/model"
 	"github.com/frchandra/chatin/app/service"
+	"github.com/frchandra/chatin/app/util"
 	"github.com/frchandra/chatin/app/validation"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -13,36 +14,35 @@ import (
 )
 
 type RoomController struct {
-	roomSvc *service.RoomService
-	Hub     *messenger.Hub
+	roomService *service.RoomService
+	userService *service.UserService
+	Hub         *messenger.Hub
 }
 
-func NewRoomController(roomSvc *service.RoomService, hub *messenger.Hub) *RoomController {
-	return &RoomController{roomSvc: roomSvc, Hub: hub}
+func NewRoomController(roomService *service.RoomService, userService *service.UserService, hub *messenger.Hub) *RoomController {
+	return &RoomController{roomService: roomService, userService: userService, Hub: hub}
 }
 
 func (r *RoomController) CreateRoom(c *gin.Context) {
-	var request validation.CreateRoomRequest
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
-		return
-	}
+	contextData, _ := c.Get("accessDetails")              //from the context passed by the user middleware, get the details about the current user that make request from the context passed by user middleware
+	accessDetails, _ := contextData.(*util.AccessDetails) //type assertion
+	user, _ := r.userService.GetOneById(accessDetails.UserId)
 
 	messages := []model.Message{
 		model.Message{
 			Id:      primitive.NewObjectID(),
-			Content: "room " + request.Name + " is created",
+			Content: "room " + user.Username + "_room is created",
 		},
 	}
 
-	roomResult, err := r.roomSvc.InsertOne(&model.Room{Name: request.Name, Messages: messages})
+	roomResult, err := r.roomService.InsertOne(&model.Room{Name: user.Username + "_room", Messages: messages})
 	if err != nil { //persist to db
 		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
 	}
 
 	r.Hub.Rooms[roomResult.Id.Hex()] = &messenger.Room{
 		Id:        roomResult.Id.Hex(),
-		Name:      request.Name,
+		Name:      user.Username + "_room",
 		Clients:   make(map[string]*messenger.Client),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -77,7 +77,7 @@ func (r *RoomController) JoinRoom(c *gin.Context) {
 		Id:          clientId,
 		RoomId:      roomId,
 		Username:    username,
-		RoomService: r.roomSvc,
+		RoomService: r.roomService,
 	}
 
 	message := &messenger.Message{
