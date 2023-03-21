@@ -28,19 +28,21 @@ func (r *RoomController) CreateRoom(c *gin.Context) {
 	accessDetails, _ := contextData.(*util.AccessDetails) //type assertion
 	user, _ := r.userService.GetOneById(accessDetails.UserId)
 
-	messages := []model.Message{
+	messages := []model.Message{ //create message payload
 		model.Message{
-			Id:      primitive.NewObjectID(),
-			Content: "room " + user.Username + "_room is created",
+			Id:       primitive.NewObjectID(),
+			Content:  "room " + user.Username + "_room is created",
+			Username: user.Username,
+			Role:     "user", //TODO: make this dynamic
 		},
 	}
 
-	roomResult, err := r.roomService.InsertOne(&model.Room{Name: user.Username + "_room", Messages: messages})
-	if err != nil { //persist to db
+	roomResult, err := r.roomService.InsertOne(&model.Room{Name: user.Username + "_room", Messages: messages}) //persist to db
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
 	}
 
-	r.Hub.Rooms[roomResult.Id.Hex()] = &messenger.Room{
+	r.Hub.Rooms[roomResult.Id.Hex()] = &messenger.Room{ //create messenger room
 		Id:        roomResult.Id.Hex(),
 		Name:      user.Username + "_room",
 		Clients:   make(map[string]*messenger.Client),
@@ -61,7 +63,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func (r *RoomController) JoinRoom(c *gin.Context) {
-	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil) //switch http to ws protocol
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
 		return
@@ -75,7 +77,7 @@ func (r *RoomController) JoinRoom(c *gin.Context) {
 	clientId := user.Id.Hex()
 	username := user.Username
 
-	client := &messenger.Client{
+	client := &messenger.Client{ //create messenger client
 		Conn:        conn,
 		Message:     make(chan *messenger.Message, 10),
 		Id:          clientId,
@@ -84,11 +86,25 @@ func (r *RoomController) JoinRoom(c *gin.Context) {
 		RoomService: r.roomService,
 	}
 
-	message := &messenger.Message{
-		Content:  "A new user has joined the room",
-		RoomId:   roomId,
-		Username: username,
+	messageId := primitive.NewObjectID()
+
+	message := &messenger.Message{ //create messenger payload
+		Id:        messageId.Hex(),
+		Content:   "user " + client.Username + " has join this room",
+		RoomId:    client.RoomId,
+		Username:  client.Username,
+		Role:      "user", //TODO: make this dynamic
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		DeletedAt: time.Time{},
 	}
+
+	_, err = r.roomService.InsertMessage(message.RoomId, &model.Message{ //insert payload to database
+		Id:       messageId,
+		Content:  message.Content,
+		Username: message.Username,
+		Role:     message.Role,
+	})
 
 	r.Hub.Register <- client   //Register a new client through the register channel
 	r.Hub.Broadcast <- message //Broadcast that message

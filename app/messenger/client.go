@@ -68,7 +68,7 @@ func (c *Client) ReadMessage(hub *Hub) {
 
 		msgId := primitive.NewObjectID()
 
-		msg := &Message{
+		msg := &Message{ //create messenger payload
 			Id:        msgId.Hex(),
 			Content:   string(m),
 			RoomId:    c.RoomId,
@@ -81,7 +81,7 @@ func (c *Client) ReadMessage(hub *Hub) {
 		fmt.Println("######### RECEIVE NEW MSG : ")
 		fmt.Println(msg)
 
-		result, err := c.RoomService.InsertMessage(msg.RoomId, &model.Message{
+		result, err := c.RoomService.InsertMessage(msg.RoomId, &model.Message{ //insert payload to database
 			Id:       msgId,
 			Content:  msg.Content,
 			Username: msg.Username,
