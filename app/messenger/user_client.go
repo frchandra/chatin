@@ -63,6 +63,7 @@ func (c *UserClient) Publisher(hub *Hub) {
 			Content:   string(m),
 			RoomId:    c.RoomId,
 			Username:  c.Username,
+			Role:      c.Role,
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 			DeletedAt: time.Time{},
@@ -72,7 +73,8 @@ func (c *UserClient) Publisher(hub *Hub) {
 			Id:       msgId,
 			Content:  msg.Content,
 			Username: msg.Username,
-			Role:     "user", //TODO: make this dynamic
+			Role:     msg.Role,
+			RoomId:   msg.RoomId,
 		})
 		if err != nil {
 			fmt.Println(err.Error())

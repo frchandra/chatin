@@ -89,12 +89,13 @@ func (r *RoomController) JoinRoom(c *gin.Context) {
 	}
 
 	botClient := &messenger.DialogflowClient{ //create messenger bot client
-		Message:  make(chan *messenger.Message, 10),
-		Id:       "bot_" + userClientId,
-		RoomId:   roomId,
-		Username: "bot",
-		Role:     "bot",
-		DfUtil:   r.dfUtil,
+		Message:     make(chan *messenger.Message, 10),
+		Id:          "bot_" + userClientId,
+		RoomId:      roomId,
+		Username:    "bot",
+		Role:        "bot",
+		DfUtil:      r.dfUtil,
+		RoomService: r.roomService,
 	}
 
 	_, err = r.roomService.InsertMessage(userClient.RoomId, &model.Message{ //insert payload to database

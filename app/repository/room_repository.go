@@ -43,6 +43,7 @@ func (r *RoomRepository) InsertMessage(roomId string, message *model.Message) (m
 		Content:  message.Content,
 		Username: message.Username,
 		Role:     message.Role,
+		RoomId:   message.RoomId,
 	}
 	update := bson.D{{"$push", bson.M{"messages": newMessage}}}
 	_, err := r.db.Collection("rooms").UpdateOne(context.Background(), filter, update)
