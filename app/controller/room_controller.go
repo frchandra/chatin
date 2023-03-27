@@ -88,26 +88,16 @@ func (r *RoomController) JoinRoom(c *gin.Context) {
 
 	messageId := primitive.NewObjectID()
 
-	message := &messenger.Message{ //create messenger payload
-		Id:        messageId.Hex(),
-		Content:   "user " + client.Username + " has join this room",
-		RoomId:    client.RoomId,
-		Username:  client.Username,
-		Role:      "user", //TODO: make this dynamic
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-		DeletedAt: time.Time{},
-	}
-
-	_, err = r.roomService.InsertMessage(message.RoomId, &model.Message{ //insert payload to database
+	_, err = r.roomService.InsertMessage(client.RoomId, &model.Message{ //insert payload to database
 		Id:       messageId,
-		Content:  message.Content,
-		Username: message.Username,
-		Role:     message.Role,
+		Content:  "user " + client.Username + " has join this room",
+		RoomId:   client.RoomId,
+		Username: client.Username,
+		Role:     "user", //TODO: make this dynamic
 	})
 
-	r.Hub.Register <- client   //Register a new client through the register channel
-	r.Hub.Broadcast <- message //Broadcast that message
+	r.Hub.Register <- client //Register a new client through the register channel
+	//r.Hub.Broadcast <- message //Broadcast that message
 
 	go client.WriteMessage()  //writeMessage (non-blocking)
 	client.ReadMessage(r.Hub) //readMessage (blocking)

@@ -9,6 +9,7 @@ import (
 type Message struct { ///
 	Id        primitive.ObjectID `bson:"_id" json:"id"`
 	Content   string             `bson:"content" json:"content"`
+	RoomId    string             `bson:"room_id" json:"room_id"`
 	Username  string             `bson:"username" json:"username"`
 	Role      string             `bson:"role" json:"role"`
 	CreatedAt time.Time          `bson:"created_at" json:"created_at"`

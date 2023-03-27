@@ -53,7 +53,7 @@ func (u *UserController) Register(c *gin.Context) {
 		return
 	}
 
-	token, err := u.userService.GenerateToken(&newUser) //generate token for this user
+	token, err := u.userService.GenerateToken(&userResult) //generate token for this user
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status": "fail",
