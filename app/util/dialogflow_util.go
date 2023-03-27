@@ -20,8 +20,8 @@ func NewDialogflowUtil(sessionClient *dialogflow.SessionsClient, config *config.
 	return &DialogflowUtil{sessionClient: sessionClient, config: config}
 }
 
-func (u DialogflowUtil) DetectIntent(text string) (string, error) {
-	sessionPath := fmt.Sprintf("projects/%s/agent/sessions/%s", u.config.DialogflowProjectId, u.config.DialogflowSessionId)
+func (u DialogflowUtil) DetectIntent(text string, session string) (string, error) {
+	sessionPath := fmt.Sprintf("projects/%s/agent/sessions/%s", u.config.DialogflowProjectId, session)
 	textInput := dialogflowpb.TextInput{Text: text, LanguageCode: u.config.DialogflowLanguage}
 	queryTextInput := dialogflowpb.QueryInput_Text{Text: &textInput}
 	queryInput := dialogflowpb.QueryInput{Input: &queryTextInput}

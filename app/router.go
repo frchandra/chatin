@@ -31,7 +31,7 @@ func NewRouter(
 	public.POST("/api/v1/user/refresh", userController.RefreshToken)
 
 	public.POST("/invoke", func(c *gin.Context) {
-		response, err := dfUtil.DetectIntent("hello")
+		response, err := dfUtil.DetectIntent("hello", "test_router")
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{"status": "error", "message": err.Error()})
 			return

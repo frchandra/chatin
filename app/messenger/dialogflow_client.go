@@ -78,7 +78,7 @@ func (c *DialogflowClient) Publisher(hub *Hub) { //this should be non-blocking p
 		}
 
 		if message.Role != "bot" && ok { //if there is a new message that belongs to the user
-			answer, err := c.DfUtil.DetectIntent(message.Content) //send it to the dialogflow api //take the answer form the dialogflow
+			answer, err := c.DfUtil.DetectIntent(message.Content, message.RoomId) //send it to the dialogflow api //take the answer form the dialogflow
 			if err != nil {
 				fmt.Println(err.Error())
 			}
