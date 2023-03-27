@@ -53,9 +53,9 @@ type AppConfig struct {
 
 	TransactionMinute time.Duration
 
-	AdminName  string
-	AdminEmail string
-	AdminPhone string
+	AdminName     string
+	AdminEmail    string
+	AdminPassword string
 
 	IsOpenGate      bool
 	QrScanBehaviour string
@@ -112,9 +112,9 @@ func NewAppConfig() *AppConfig {
 
 		TransactionMinute: transactionMinute,
 
-		AdminName:  getEnv("ADMIN_NAME", ""),
-		AdminEmail: getEnv("ADMIN_EMAIL", ""),
-		AdminPhone: getEnv("ADMIN_PHONE", ""),
+		AdminName:     getEnv("ADMIN_NAME", ""),
+		AdminEmail:    getEnv("ADMIN_EMAIL", ""),
+		AdminPassword: getEnv("ADMIN_PASSWORD", ""),
 
 		IsOpenGate:      true,
 		QrScanBehaviour: "open_gate", //open_gate, ticket_exchanging, default

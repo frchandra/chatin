@@ -40,6 +40,10 @@ func (u *UserController) Register(c *gin.Context) {
 		Role:     "user",
 	}
 
+	if inputData.Name == u.config.AdminName && inputData.Email == u.config.AdminEmail && inputData.Password == u.config.AdminPassword { //check if user is admin
+		newUser.Role = "admin"
+	}
+
 	userResult, err := u.userService.GetOrInsertOne(&newUser) //update or get the new data
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{

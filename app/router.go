@@ -32,8 +32,10 @@ func NewRouter(
 	user.GET("/api/v1/user", userController.CurrentUser)
 	user.POST("/api/v1/room", roomController.CreateRoom)
 	user.GET("/ws/v1/room/join/:roomId", roomController.JoinRoom)
-	user.GET("/api/v1/room", roomController.GetRooms)              //make this admin
-	user.GET("/api/v1/clients/:roomId", roomController.GetClients) //make this admin
+
+	admin := router.Use(userMiddleware.HandleAdminAccess)
+	admin.GET("/api/v1/room", roomController.GetRooms)              //make this admin
+	admin.GET("/api/v1/clients/:roomId", roomController.GetClients) //make this admin
 
 	//Logged-In Admin Routes
 
