@@ -35,6 +35,7 @@ var RoomSet = wire.NewSet(
 var UtilSet = wire.NewSet(
 	util.NewTokenUtil,
 	util.NewLogUtil,
+	util.NewDialogflowUtil,
 )
 
 var MessengerSet = wire.NewSet(
@@ -47,6 +48,7 @@ func InitializeServer() *app.Server {
 		app.NewDatabase,
 		app.NewCache,
 		app.NewLogger,
+		app.NewChatBot,
 		MessengerSet,
 		UtilSet,
 		MiddlewareSet,

@@ -35,37 +35,20 @@ type AppConfig struct {
 	AccessMinute  time.Duration
 	RefreshMinute time.Duration
 
-	MerchId              string
-	MidtransIsProduction bool
-	ClientKeySandbox     string
-	ServerKeySandbox     string
-	ClientKeyProduction  string
-	ServerKeyProduction  string
-
-	MailMailer      string
-	MailHost        string
-	MailPort        string
-	MailUsername    string
-	MailPassword    string
-	MailEncryption  string
-	MailFromAddress string
-	MailFromName    string
-
-	TransactionMinute time.Duration
-
 	AdminName     string
 	AdminEmail    string
 	AdminPassword string
 
-	IsOpenGate      bool
-	QrScanBehaviour string
+	DialogflowCredential string
+	DialogflowProjectId  string
+	DialogflowLanguage   string
+	DialogflowTimeZone   string
+	DialogflowSessionId  string
 }
 
 func NewAppConfig() *AppConfig {
-	midtransIsProduction, _ := strconv.ParseBool(getEnv("MIDTRANS_IS_PRODUCTION", "0"))
 	accessMinute, _ := time.ParseDuration(getEnv("ACCESS_MINUTE", "15m"))
 	refreshMinute, _ := time.ParseDuration(getEnv("ACCESS_MINUTE", "120m"))
-	transactionMinute, _ := time.ParseDuration(getEnv("TRANSACTION_MINUTE", "15m"))
 	dbMaxIdleConnection, _ := strconv.Atoi(getEnv("DB_MAX_IDLE_CONNECTION", "10"))
 	dbMaxOpenConnection, _ := strconv.Atoi(getEnv("DB_MAX_OPEN_CONNECTION", "10"))
 	dbConnectionMaxLifeMinute, _ := time.ParseDuration(getEnv("DB_CONNECTION_MAX_LIFE_MINUTE", "60m"))
@@ -94,30 +77,15 @@ func NewAppConfig() *AppConfig {
 		AccessMinute:  accessMinute,
 		RefreshMinute: refreshMinute,
 
-		MerchId:              getEnv("MERCH_ID", ""),
-		MidtransIsProduction: midtransIsProduction,
-		ClientKeySandbox:     getEnv("CLIENT_KEY_SANDBOX", ""),
-		ServerKeySandbox:     getEnv("SERVER_KEY_SANDBOX", ""),
-		ClientKeyProduction:  getEnv("CLIENT_KEY_PRODUCTION", ""),
-		ServerKeyProduction:  getEnv("SERVER_KEY_PRODUCTION", ""),
-
-		MailMailer:      getEnv("MAIL_MAILER", "smtp"),
-		MailHost:        getEnv("MAIL_HOST", "smtp.gmail.com"),
-		MailPort:        getEnv("MAIL_PORT", "465"),
-		MailUsername:    getEnv("MAIL_USERNAME", ""),
-		MailPassword:    getEnv("MAIL_PASSWORD", ""),
-		MailEncryption:  getEnv("MAIL_ENCRYPTION", "ssl"),
-		MailFromAddress: getEnv("MAIL_FROM_ADDRESS", ""),
-		MailFromName:    getEnv("MAIL_FROM_NAME", "gmco"),
-
-		TransactionMinute: transactionMinute,
-
 		AdminName:     getEnv("ADMIN_NAME", ""),
 		AdminEmail:    getEnv("ADMIN_EMAIL", ""),
 		AdminPassword: getEnv("ADMIN_PASSWORD", ""),
 
-		IsOpenGate:      true,
-		QrScanBehaviour: "open_gate", //open_gate, ticket_exchanging, default
+		DialogflowCredential: getEnv("DIALOGFLOW_CREDENTIAL", ""),
+		DialogflowProjectId:  getEnv("DIALOGFLOW_PROJECT_ID", ""),
+		DialogflowLanguage:   getEnv("DIALOGFLOW_LANGUAGE", ""),
+		DialogflowTimeZone:   getEnv("DIALOGFLOW_TIME_ZONE", ""),
+		DialogflowSessionId:  getEnv("DIALOGFLOW_SESSION_ID", ""),
 	}
 	return &appConfig
 

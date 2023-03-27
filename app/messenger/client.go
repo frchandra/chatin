@@ -78,9 +78,6 @@ func (c *Client) ReadMessage(hub *Hub) {
 			DeletedAt: time.Time{},
 		}
 
-		fmt.Println("######### RECEIVE NEW MSG : ")
-		fmt.Println(msg)
-
 		result, err := c.RoomService.InsertMessage(msg.RoomId, &model.Message{ //insert payload to database
 			Id:       msgId,
 			Content:  msg.Content,
@@ -88,10 +85,8 @@ func (c *Client) ReadMessage(hub *Hub) {
 			Role:     "user", //TODO: make this dynamic
 		})
 		if err != nil {
-			fmt.Println("######### DB OPS ERROR")
 			fmt.Println(err.Error())
 		} else {
-			fmt.Println("######### DB OPS SUCCESS")
 			fmt.Println(result)
 		}
 
