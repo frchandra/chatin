@@ -34,10 +34,10 @@ func InitializeServer() *app.Server {
 	userController := controller.NewUserController(userService, tokenUtil, appConfig, logUtil)
 	roomRepository := repository.NewRoomRepository(database, logUtil)
 	roomService := service.NewRoomService(roomRepository)
-	hub := messenger.NewHub()
-	roomController := controller.NewRoomController(roomService, userService, hub)
 	sessionsClient := app.NewChatBot(appConfig, logger)
 	dialogflowUtil := util.NewDialogflowUtil(sessionsClient, appConfig)
+	hub := messenger.NewHub()
+	roomController := controller.NewRoomController(roomService, userService, dialogflowUtil, hub)
 	server := app.NewRouter(userMiddleware, userController, roomController, dialogflowUtil)
 	return server
 }

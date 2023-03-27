@@ -16,11 +16,12 @@ import (
 type RoomController struct {
 	roomService *service.RoomService
 	userService *service.UserService
+	dfUtil      *util.DialogflowUtil
 	Hub         *messenger.Hub
 }
 
-func NewRoomController(roomService *service.RoomService, userService *service.UserService, hub *messenger.Hub) *RoomController {
-	return &RoomController{roomService: roomService, userService: userService, Hub: hub}
+func NewRoomController(roomService *service.RoomService, userService *service.UserService, dfUtil *util.DialogflowUtil, hub *messenger.Hub) *RoomController {
+	return &RoomController{roomService: roomService, userService: userService, dfUtil: dfUtil, Hub: hub}
 }
 
 func (r *RoomController) CreateRoom(c *gin.Context) {
@@ -45,7 +46,7 @@ func (r *RoomController) CreateRoom(c *gin.Context) {
 	r.Hub.Rooms[roomResult.Id.Hex()] = &messenger.Room{ //create messenger room
 		Id:        roomResult.Id.Hex(),
 		Name:      user.Username + "_room",
-		Clients:   make(map[string]*messenger.Client),
+		Clients:   make(map[string]messenger.Client),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		DeletedAt: time.Time{},
@@ -74,33 +75,42 @@ func (r *RoomController) JoinRoom(c *gin.Context) {
 	user, _ := r.userService.GetOneById(accessDetails.UserId)
 
 	roomId := c.Param("roomId")
-	clientId := user.Id.Hex()
+	userClientId := user.Id.Hex()
 	username := user.Username
 
-	client := &messenger.Client{ //create messenger client
+	userClient := &messenger.UserClient{ //create messenger userClient
 		Conn:        conn,
 		Message:     make(chan *messenger.Message, 10),
-		Id:          clientId,
+		Id:          userClientId,
 		RoomId:      roomId,
 		Username:    username,
+		Role:        "user",
 		RoomService: r.roomService,
 	}
 
-	messageId := primitive.NewObjectID()
+	botClient := &messenger.DialogflowClient{ //create messenger bot client
+		Message:  make(chan *messenger.Message, 10),
+		Id:       "bot_" + userClientId,
+		RoomId:   roomId,
+		Username: "bot",
+		Role:     "bot",
+		DfUtil:   r.dfUtil,
+	}
 
-	_, err = r.roomService.InsertMessage(client.RoomId, &model.Message{ //insert payload to database
-		Id:       messageId,
-		Content:  "user " + client.Username + " has join this room",
-		RoomId:   client.RoomId,
-		Username: client.Username,
+	_, err = r.roomService.InsertMessage(userClient.RoomId, &model.Message{ //insert payload to database
+		Id:       primitive.NewObjectID(),
+		Content:  "user " + userClient.Username + " has join this room",
+		RoomId:   userClient.RoomId,
+		Username: userClient.Username,
 		Role:     "user", //TODO: make this dynamic
 	})
 
-	r.Hub.Register <- client //Register a new client through the register channel
-	//r.Hub.Broadcast <- message //Broadcast that message
+	r.Hub.Register <- userClient //Register a new userClient through the register channel
+	r.Hub.Register <- botClient
 
-	go client.WriteMessage()  //writeMessage (non-blocking)
-	client.ReadMessage(r.Hub) //readMessage (blocking)
+	go botClient.Publisher(r.Hub)
+	go userClient.Subscriber()  //writeMessage (non-blocking)
+	userClient.Publisher(r.Hub) //readMessage (blocking)
 }
 
 func (r *RoomController) GetRooms(c *gin.Context) {
@@ -122,8 +132,8 @@ func (r *RoomController) GetClients(c *gin.Context) {
 	}
 	for _, client := range r.Hub.Rooms[roomId].Clients {
 		clients = append(clients, validation.GetClientResponse{
-			Id:       client.Id,
-			Username: client.Username,
+			Id:       client.GetId(),
+			Username: client.GetUsername(),
 		})
 	}
 	c.JSON(http.StatusOK, clients)
