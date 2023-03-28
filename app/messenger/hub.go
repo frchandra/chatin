@@ -33,20 +33,13 @@ func (h *Hub) Run() {
 		case cl := <-h.Register: //new client has been added
 			if _, ok := h.Rooms[cl.GetRoomId()]; ok { //check: is the client's roomId is actually exist?
 				r := h.Rooms[cl.GetRoomId()]
-				if _, ok := r.Clients[cl.GetId()]; !ok { //check: is the client hasn't been added to the room?
+				if _, ok = r.Clients[cl.GetId()]; !ok { //check: is the client hasn't been added to the room?
 					r.Clients[cl.GetId()] = cl //add the client to this room
 				}
 			}
 		case cl := <-h.Unregister: //client left the room
 			if _, ok := h.Rooms[cl.GetRoomId()]; ok { //check: is the client's roomId is actually exist?
-				if _, ok := h.Rooms[cl.GetRoomId()].Clients[cl.GetId()]; ok { //check: is the client is actually exist in this room?
-					if len(h.Rooms[cl.GetRoomId()].Clients) != 0 { //check: is there still another client in the room?
-						h.Broadcast <- &Message{ //broadcast the default "user left the room" messages to the remaining client
-							Content:  "user left the chat",
-							RoomId:   cl.GetRoomId(),
-							Username: cl.GetUsername(),
-						}
-					}
+				if _, ok = h.Rooms[cl.GetRoomId()].Clients[cl.GetId()]; ok { //check: is the client is actually exist in this room?
 					delete(h.Rooms[cl.GetRoomId()].Clients, cl.GetId()) //delete the client
 					close(cl.GetMessage())                              //close the client's message channel
 				}

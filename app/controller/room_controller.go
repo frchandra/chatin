@@ -34,7 +34,7 @@ func (r *RoomController) CreateRoom(c *gin.Context) {
 			Id:       primitive.NewObjectID(),
 			Content:  "room " + user.Username + "_room is created",
 			Username: user.Username,
-			Role:     "user", //TODO: make this dynamic
+			Role:     user.Role,
 		},
 	}
 
@@ -74,44 +74,33 @@ func (r *RoomController) JoinRoom(c *gin.Context) {
 	accessDetails, _ := contextData.(*util.AccessDetails) //type assertion
 	user, _ := r.userService.GetOneById(accessDetails.UserId)
 
-	roomId := c.Param("roomId")
-	userClientId := user.Id.Hex()
-	username := user.Username
-
 	userClient := &messenger.UserClient{ //create messenger userClient
 		Conn:        conn,
 		Message:     make(chan *messenger.Message, 10),
-		Id:          userClientId,
-		RoomId:      roomId,
-		Username:    username,
-		Role:        "user",
+		Id:          user.Id.Hex(),
+		RoomId:      c.Param("roomId"),
+		Username:    user.Username,
+		Role:        user.Role,
 		RoomService: r.roomService,
 	}
 
-	botClient := &messenger.DialogflowClient{ //create messenger bot client
-		Message:     make(chan *messenger.Message, 10),
-		Id:          "bot_" + userClientId,
-		RoomId:      roomId,
-		Username:    "bot",
-		Role:        "bot",
-		DfUtil:      r.dfUtil,
-		RoomService: r.roomService,
+	if user.Role != "admin" {
+		botClient := &messenger.DialogflowClient{ //create messenger bot client
+			Message:     make(chan *messenger.Message, 10),
+			Id:          "bot_" + user.Id.Hex(),
+			RoomId:      c.Param("roomId"),
+			Username:    "bot",
+			Role:        "bot",
+			DfUtil:      r.dfUtil,
+			RoomService: r.roomService,
+		}
+		r.Hub.Register <- botClient
+		go botClient.Publisher(r.Hub)
 	}
-
-	_, err = r.roomService.InsertMessage(userClient.RoomId, &model.Message{ //insert payload to database
-		Id:       primitive.NewObjectID(),
-		Content:  "user " + userClient.Username + " has join this room",
-		RoomId:   userClient.RoomId,
-		Username: userClient.Username,
-		Role:     "user", //TODO: make this dynamic
-	})
 
 	r.Hub.Register <- userClient //Register a new userClient through the register channel
-	r.Hub.Register <- botClient
-
-	go botClient.Publisher(r.Hub)
-	go userClient.Subscriber()  //writeMessage (non-blocking)
-	userClient.Publisher(r.Hub) //readMessage (blocking)
+	go userClient.Subscriber()   //writeMessage (non-blocking)
+	userClient.Publisher(r.Hub)  //readMessage (blocking)
 }
 
 func (r *RoomController) GetRooms(c *gin.Context) {

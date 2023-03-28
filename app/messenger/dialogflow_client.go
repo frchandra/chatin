@@ -28,52 +28,19 @@ func (c *DialogflowClient) Subscriber() {
 
 func (c *DialogflowClient) Publisher(hub *Hub) { //this should be non-blocking process
 	defer func() {
+		msg := c.InsertMessage("user " + c.Username + " telah meninggalkan ruangan")
+		hub.Broadcast <- msg
 		hub.Unregister <- c
 	}()
 
-	msgId := primitive.NewObjectID() //send hello message
-	msg := &Message{                 //create messenger payload
-		Id:        msgId.Hex(),
-		Content:   "hello i am a bot, how can i help you",
-		RoomId:    c.RoomId,
-		Username:  c.Username, //bot
-		Role:      c.Role,     //bot
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-		DeletedAt: time.Time{},
-	}
-	_, _ = c.RoomService.InsertMessage(msg.RoomId, &model.Message{ //insert payload to database
-		Id:       msgId,
-		Content:  msg.Content,
-		Username: msg.Username,
-		Role:     msg.Role,
-		RoomId:   msg.RoomId,
-	})
-	hub.Broadcast <- msg //send the answer to the hub
+	msg := c.InsertMessage("halo saya adalah bot, ada yang bisa saya bantu?")
 
 	for { //listening to new incoming message
 		message, ok := <-c.Message
+
 		if message.Content == "0" && ok {
-			msgId = primitive.NewObjectID()
-			msg = &Message{ //create messenger payload
-				Id:        msgId.Hex(),
-				Content:   "good bye! -bot",
-				RoomId:    c.RoomId,
-				Username:  c.Username, //bot
-				Role:      c.Role,     //bot
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-				DeletedAt: time.Time{},
-			}
-			_, _ = c.RoomService.InsertMessage(msg.RoomId, &model.Message{ //insert payload to database
-				Id:       msgId,
-				Content:  msg.Content,
-				Username: msg.Username,
-				Role:     msg.Role,
-				RoomId:   msg.RoomId,
-			})
+			msg = c.InsertMessage("selamat tinggal! -bot")
 			hub.Broadcast <- msg //send the answer to the hub
-			hub.Unregister <- c
 			return
 		}
 
@@ -82,28 +49,31 @@ func (c *DialogflowClient) Publisher(hub *Hub) { //this should be non-blocking p
 			if err != nil {
 				fmt.Println(err.Error())
 			}
-			msgId = primitive.NewObjectID()
-			msg = &Message{ //create messenger payload
-				Id:        msgId.Hex(),
-				Content:   answer,
-				RoomId:    c.RoomId,
-				Username:  c.Username, //bot
-				Role:      c.Role,     //bot
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-				DeletedAt: time.Time{},
-			}
-			_, _ = c.RoomService.InsertMessage(msg.RoomId, &model.Message{ //insert payload to database
-				Id:       msgId,
-				Content:  msg.Content,
-				Username: msg.Username,
-				Role:     msg.Role,
-				RoomId:   msg.RoomId,
-			})
+			msg = c.InsertMessage(answer)
 			hub.Broadcast <- msg //send the answer to the hub
 		}
-
 	}
+}
+
+func (c *DialogflowClient) InsertMessage(content string) *Message {
+	result, _ := c.RoomService.InsertMessage(c.RoomId, &model.Message{ //insert payload to database
+		Id:       primitive.NewObjectID(),
+		Content:  content,
+		Username: c.Username,
+		Role:     c.Role,
+		RoomId:   c.RoomId,
+	})
+	msg := &Message{ //create messenger payload
+		Id:        result.Id.Hex(),
+		Content:   content,
+		RoomId:    c.RoomId,
+		Username:  c.Username, //bot
+		Role:      c.Role,     //bot
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		DeletedAt: time.Time{},
+	}
+	return msg
 }
 
 func (c *DialogflowClient) GetId() string {

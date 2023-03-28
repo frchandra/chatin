@@ -1,7 +1,6 @@
 package messenger
 
 import (
-	"fmt"
 	"github.com/frchandra/chatin/app/model"
 	"github.com/frchandra/chatin/app/service"
 	"github.com/gorilla/websocket"
@@ -43,9 +42,14 @@ func (c *UserClient) Subscriber() {
 
 func (c *UserClient) Publisher(hub *Hub) {
 	defer func() {
+		msg := c.InsertMessage("user " + c.Username + " telah meninggalkan ruangan")
+		hub.Broadcast <- msg
 		hub.Unregister <- c
 		_ = c.Conn.Close()
 	}()
+
+	msg := c.InsertMessage("user " + c.Username + " telah bergabung kedalam ruangan")
+	//hub.Broadcast <- msg
 
 	for {
 		_, m, err := c.Conn.ReadMessage()
@@ -55,35 +59,30 @@ func (c *UserClient) Publisher(hub *Hub) {
 			}
 			break
 		}
-
-		msgId := primitive.NewObjectID()
-
-		msg := &Message{ //create messenger payload
-			Id:        msgId.Hex(),
-			Content:   string(m),
-			RoomId:    c.RoomId,
-			Username:  c.Username,
-			Role:      c.Role,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-			DeletedAt: time.Time{},
-		}
-
-		result, err := c.RoomService.InsertMessage(msg.RoomId, &model.Message{ //insert payload to database
-			Id:       msgId,
-			Content:  msg.Content,
-			Username: msg.Username,
-			Role:     msg.Role,
-			RoomId:   msg.RoomId,
-		})
-		if err != nil {
-			fmt.Println(err.Error())
-		} else {
-			fmt.Println(result)
-		}
-
+		msg = c.InsertMessage(string(m))
 		hub.Broadcast <- msg
 	}
+}
+
+func (c *UserClient) InsertMessage(content string) *Message {
+	result, _ := c.RoomService.InsertMessage(c.RoomId, &model.Message{ //insert payload to database
+		Id:       primitive.NewObjectID(),
+		Content:  content,
+		Username: c.Username,
+		Role:     c.Role,
+		RoomId:   c.RoomId,
+	})
+	msg := &Message{ //create messenger payload
+		Id:        result.Id.Hex(),
+		Content:   content,
+		RoomId:    c.RoomId,
+		Username:  c.Username,
+		Role:      c.Role,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		DeletedAt: time.Time{},
+	}
+	return msg
 }
 
 func (c *UserClient) GetId() string {

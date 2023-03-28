@@ -39,7 +39,7 @@ func (r *RoomRepository) InsertMessage(roomId string, message *model.Message) (m
 	roomIdBson, _ := primitive.ObjectIDFromHex(roomId)
 	filter := bson.M{"_id": roomIdBson}
 	newMessage := model.Message{
-		Id:       primitive.NewObjectID(),
+		Id:       message.Id,
 		Content:  message.Content,
 		Username: message.Username,
 		Role:     message.Role,
