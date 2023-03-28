@@ -4,9 +4,7 @@ import (
 	"github.com/frchandra/chatin/app/controller"
 	"github.com/frchandra/chatin/app/messenger"
 	"github.com/frchandra/chatin/app/middleware"
-	"github.com/frchandra/chatin/app/util"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 type Server struct {
@@ -18,8 +16,6 @@ func NewRouter(
 	userMiddleware *middleware.UserMiddleware,
 	userController *controller.UserController,
 	roomController *controller.RoomController,
-
-	dfUtil *util.DialogflowUtil,
 ) *Server {
 	router := gin.Default()
 
@@ -29,17 +25,6 @@ func NewRouter(
 	public.POST("/api/v1/user/sign_in", userController.SignIn)
 	public.POST("/api/v1/user/login", userController.Login)
 	public.POST("/api/v1/user/refresh", userController.RefreshToken)
-
-	public.POST("/invoke", func(c *gin.Context) {
-		response, err := dfUtil.DetectIntent("hello", "test_router")
-		if err != nil {
-			c.JSON(http.StatusOK, gin.H{"status": "error", "message": err.Error()})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{"status": "OK", "message": response})
-		return
-	})
 
 	//Logged-In User Routes
 	user := router.Use(userMiddleware.HandleUserAccess)
@@ -52,6 +37,7 @@ func NewRouter(
 	admin := router.Use(userMiddleware.HandleAdminAccess)
 	admin.GET("/api/v1/room", roomController.GetRooms)
 	admin.GET("/api/v1/clients/:roomId", roomController.GetClients)
+	admin.GET("api/v1/bot_less_room", roomController.GetBotLessRooms)
 
 	server := &Server{
 		Web: router,

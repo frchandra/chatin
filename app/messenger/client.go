@@ -7,4 +7,5 @@ type Client interface {
 	GetRoomId() string
 	GetUsername() string
 	GetMessage() chan *Message
+	GetRole() string
 }

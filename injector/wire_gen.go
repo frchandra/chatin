@@ -38,7 +38,7 @@ func InitializeServer() *app.Server {
 	dialogflowUtil := util.NewDialogflowUtil(sessionsClient, appConfig)
 	hub := messenger.NewHub()
 	roomController := controller.NewRoomController(roomService, userService, dialogflowUtil, hub)
-	server := app.NewRouter(userMiddleware, userController, roomController, dialogflowUtil)
+	server := app.NewRouter(userMiddleware, userController, roomController)
 	return server
 }
 

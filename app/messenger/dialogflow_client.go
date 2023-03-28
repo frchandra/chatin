@@ -91,3 +91,7 @@ func (c *DialogflowClient) GetUsername() string {
 func (c *DialogflowClient) GetMessage() chan *Message {
 	return c.Message
 }
+
+func (c DialogflowClient) GetRole() string {
+	return c.Role
+}

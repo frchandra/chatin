@@ -100,3 +100,7 @@ func (c *UserClient) GetUsername() string {
 func (c *UserClient) GetMessage() chan *Message {
 	return c.Message
 }
+
+func (c UserClient) GetRole() string {
+	return c.Role
+}

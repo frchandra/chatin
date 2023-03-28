@@ -112,6 +112,23 @@ func (r *RoomController) GetRooms(c *gin.Context) {
 	return
 }
 
+func (r *RoomController) GetBotLessRooms(c *gin.Context) {
+	rooms := make([]messenger.Room, 0)
+	for _, room := range r.Hub.Rooms {
+		isBotExist := false
+		for _, client := range r.Hub.Rooms[room.Id].Clients {
+			if client.GetRole() == "bot" {
+				isBotExist = true
+			}
+		}
+		if isBotExist == false {
+			rooms = append(rooms, *room)
+		}
+	}
+	c.JSON(http.StatusOK, rooms)
+	return
+}
+
 func (r *RoomController) GetClients(c *gin.Context) {
 	var clients []validation.GetClientResponse
 	roomId := c.Param("roomId")
@@ -124,6 +141,7 @@ func (r *RoomController) GetClients(c *gin.Context) {
 		clients = append(clients, validation.GetClientResponse{
 			Id:       client.GetId(),
 			Username: client.GetUsername(),
+			Role:     client.GetRole(),
 		})
 	}
 	c.JSON(http.StatusOK, clients)
