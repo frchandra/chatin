@@ -20,6 +20,9 @@ func NewRouter(
 ) *Server {
 	router := gin.Default()
 
+	//Health Check (scope: public)
+	router.GET("/api/v1/health", configController.HealthCheck)
+
 	//Public User Standard Auth Routes
 	public := router
 	public.POST("/api/v1/user/register", userController.Register)

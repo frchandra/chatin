@@ -26,7 +26,7 @@ func InitializeServer() *app.Server {
 	logger := app.NewLogger(appConfig)
 	mongoDatabase := app.NewDatabase(appConfig, logger)
 	migrator := database.NewMigrator(mongoDatabase, logger)
-	configController := controller.NewConfigController(migrator)
+	configController := controller.NewConfigController(migrator, appConfig)
 	client := app.NewCache(appConfig)
 	tokenUtil := util.NewTokenUtil(client, appConfig)
 	logUtil := util.NewLogUtil(logger)
