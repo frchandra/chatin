@@ -13,6 +13,7 @@ type Server struct {
 }
 
 func NewRouter(
+	configController *controller.ConfigController,
 	userMiddleware *middleware.UserMiddleware,
 	userController *controller.UserController,
 	roomController *controller.RoomController,
@@ -25,6 +26,8 @@ func NewRouter(
 	public.POST("/api/v1/user/sign_in", userController.SignIn)
 	public.POST("/api/v1/user/login", userController.Login)
 	public.POST("/api/v1/user/refresh", userController.RefreshToken)
+	public.DELETE("/api/v1/migrate_fresh", configController.RefreshDb)
+	public.DELETE("/api/v1/clear_memory", roomController.DeleteAllRoom)
 
 	//Logged-In User Routes
 	user := router.Use(userMiddleware.HandleUserAccess)

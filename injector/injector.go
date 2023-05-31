@@ -20,6 +20,11 @@ var MiddlewareSet = wire.NewSet(
 	middleware.NewUserMiddleware,
 )
 
+var ConfigSet = wire.NewSet(
+	database.NewMigrator,
+	controller.NewConfigController,
+)
+
 var UserSet = wire.NewSet(
 	repository.NewUserRepository,
 	service.NewUserService,
@@ -54,6 +59,7 @@ func InitializeServer() *app.Server {
 		MiddlewareSet,
 		UserSet,
 		RoomSet,
+		ConfigSet,
 		app.NewRouter,
 	)
 	return nil

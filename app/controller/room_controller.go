@@ -24,6 +24,12 @@ func NewRoomController(roomService *service.RoomService, userService *service.Us
 	return &RoomController{roomService: roomService, userService: userService, dfUtil: dfUtil, Hub: hub}
 }
 
+func (r *RoomController) DeleteAllRoom(c *gin.Context) {
+	r.Hub.Rooms = make(map[string]*messenger.Room)
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
+	return
+}
+
 func (r *RoomController) CreateRoom(c *gin.Context) {
 	contextData, _ := c.Get("accessDetails")              //from the context passed by the user middleware, get the details about the current user that make request from the context passed by user middleware
 	accessDetails, _ := contextData.(*util.AccessDetails) //type assertion

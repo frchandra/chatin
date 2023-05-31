@@ -23,22 +23,24 @@ import (
 
 func InitializeServer() *app.Server {
 	appConfig := config.NewAppConfig()
+	logger := app.NewLogger(appConfig)
+	mongoDatabase := app.NewDatabase(appConfig, logger)
+	migrator := database.NewMigrator(mongoDatabase, logger)
+	configController := controller.NewConfigController(migrator)
 	client := app.NewCache(appConfig)
 	tokenUtil := util.NewTokenUtil(client, appConfig)
-	logger := app.NewLogger(appConfig)
-	database := app.NewDatabase(appConfig, logger)
 	logUtil := util.NewLogUtil(logger)
-	userRepository := repository.NewUserRepository(database, logUtil)
+	userRepository := repository.NewUserRepository(mongoDatabase, logUtil)
 	userService := service.NewUserService(userRepository, tokenUtil)
 	userMiddleware := middleware.NewUserMiddleware(tokenUtil, logger, userService)
 	userController := controller.NewUserController(userService, tokenUtil, appConfig, logUtil)
-	roomRepository := repository.NewRoomRepository(database, logUtil)
+	roomRepository := repository.NewRoomRepository(mongoDatabase, logUtil)
 	roomService := service.NewRoomService(roomRepository)
 	sessionsClient := app.NewChatBot(appConfig, logger)
 	dialogflowUtil := util.NewDialogflowUtil(sessionsClient, appConfig)
 	hub := messenger.NewHub()
 	roomController := controller.NewRoomController(roomService, userService, dialogflowUtil, hub)
-	server := app.NewRouter(userMiddleware, userController, roomController)
+	server := app.NewRouter(configController, userMiddleware, userController, roomController)
 	return server
 }
 
@@ -53,6 +55,8 @@ func InitializeMigrator() *database.Migrator {
 // injector.go:
 
 var MiddlewareSet = wire.NewSet(middleware.NewUserMiddleware)
+
+var ConfigSet = wire.NewSet(database.NewMigrator, controller.NewConfigController)
 
 var UserSet = wire.NewSet(repository.NewUserRepository, service.NewUserService, controller.NewUserController)
 
