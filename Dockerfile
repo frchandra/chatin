@@ -20,9 +20,6 @@ RUN apt update && apt install -y apt-utils
 WORKDIR /chatin
 
 COPY --from=builder /go/src/bin /chatin
-COPY storage /chatin/storage
-#COPY .env /chatin/
-#COPY .senpro-381803-cffcf39a0935.json /chatin/senpro-381803-cffcf39a0935.json
 
 EXPOSE 5000
 CMD ["/chatin/app"]
