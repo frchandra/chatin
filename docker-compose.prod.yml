@@ -3,7 +3,7 @@ version: '3'
 services:
   chatin-ticketing-be-prod:
     image: frchandra/chatin-be:${DOCKER_TAG}
-    restart: unless-stopped
+    restart: no
     container_name: chatin_be_prod
     env_file:
       - .env
