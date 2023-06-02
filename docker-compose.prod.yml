@@ -5,7 +5,7 @@ services:
     image: frchandra/chatin-be:${DOCKER_TAG}
     container_name: chatin_be_prod
     volumes:
-      - ~/infra/vault/.env:/chatin/.env:ro
+      - ~/infra/vault/.env.production:/chatin/.env:ro
       - ~/infra/vault/senpro-381803-cffcf39a0935.json:/chatin/senpro-381803-cffcf39a0935.json:ro
       - ~/infra/vault/storage:/chatin/storage
     ports:
